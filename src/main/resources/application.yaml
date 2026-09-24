@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: spring-data
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        generate_statistics: true
+  flyway:
+    enabled: true
+  datasource:
+    username: orbit
+    password: orbit
+    url: jdbc:postgresql://localhost:5437/orbit_data
+
+
+
+orbit:
+  migration:
+    mode: validate
+logging:
+  level:
+    com.onatarslan.springdata.todo: debug
+    org.hibernate.sql: debug
+    org.hibernate.orm.jdbc.bind: TRACE
+    org.springframework.orm.jpa.JpaTransactionManager: DEBUG
+    # Session metrics: logger adı Hibernate sürümüne göre değişti, ikisi birden açık
+    org.hibernate.session.metrics: DEBUG
+    org.hibernate.engine.internal.StatisticalLoggingSessionEventListener: DEBUG
