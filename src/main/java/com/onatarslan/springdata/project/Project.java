@@ -1,18 +1,14 @@
 package com.onatarslan.springdata.project;
 
 import java.time.Instant;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 import com.onatarslan.springdata.project.ProjectStatus;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import jakarta.persistence.Version;
+import com.onatarslan.springdata.todo.Todo;
+import jakarta.persistence.*;
 
 import org.hibernate.annotations.UuidGenerator;
 
@@ -26,6 +22,7 @@ public class Project {
     @GeneratedValue
     @UuidGenerator(style = UuidGenerator.Style.VERSION_7)
     private UUID id;
+
 
     @Column(name = "name", nullable = false, length = NAME_MAX_LENGTH)
     private String name;
@@ -100,6 +97,8 @@ public class Project {
     public UUID getId() {
         return id;
     }
+
+
 
     public String getName() {
         return name;

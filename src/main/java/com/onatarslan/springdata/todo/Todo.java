@@ -6,16 +6,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.onatarslan.springdata.project.Project;
 import com.onatarslan.springdata.todo.PriorityConverter;
-import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import jakarta.persistence.Version;
+import jakarta.persistence.*;
 
 import org.hibernate.annotations.UuidGenerator;
 
@@ -28,6 +21,10 @@ public class Todo {
     @GeneratedValue
     @UuidGenerator(style = UuidGenerator.Style.VERSION_7)
     private UUID id;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "project_id", nullable = false)
+    private Project project;
 
     @Column(name = "title", nullable = false, length = 200)
     private String title;
@@ -57,6 +54,39 @@ public class Todo {
     private Instant updatedAt;
 
     protected Todo() {
+    }
+
+    public Todo(Project project, String title, Priority priority) {
+        this.project = Objects.requireNonNull(project, "project");
+        this.title = validTitle(title);
+        this.priority = Objects.requireNonNull(priority, "priority");
+        this.status = TodoStatus.TODO;
+        this.createdAt = Instant.now();
+        this.updatedAt = this.createdAt;
+    }
+
+    public void moveTo(Project target) {
+        Objects.requireNonNull(target, "target");
+        requireNotDone();
+        // Aynı project mi? id karşılaştırması proxy'yi initialize etmez
+        if (target.getId().equals(project.getId())) {
+            return;
+        }
+        this.project = target;
+        touch();
+    }
+
+    private static String validTitle(String candidate) {
+        Objects.requireNonNull(candidate, "title");
+        String stripped = candidate.strip();
+        if (stripped.isEmpty() || stripped.length() > 200) {
+            throw new IllegalArgumentException("Title must be 1-200 characters");
+        }
+        return stripped;
+    }
+
+    public Project getProject() {
+        return project;
     }
 
     public void start() {
