@@ -2,11 +2,10 @@ package com.onatarslan.springdata.todo;
 
 import java.time.Instant;
 import java.time.LocalDate;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import com.onatarslan.springdata.project.Project;
+import com.onatarslan.springdata.tag.Tag;
 import com.onatarslan.springdata.todo.PriorityConverter;
 import jakarta.persistence.*;
 
@@ -25,6 +24,15 @@ public class Todo {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "project_id", nullable = false)
     private Project project;
+
+    @OneToMany(
+            mappedBy = "todo",
+            cascade = {
+                    CascadeType.PERSIST, CascadeType.REMOVE,
+            },
+            orphanRemoval = true
+    )
+    private Set<TodoTag> todoTags = new HashSet<>();
 
     @Column(name = "title", nullable = false, length = 200)
     private String title;
@@ -129,6 +137,29 @@ public class Todo {
         if (status == TodoStatus.DONE) {
             throw new IllegalStateException("Done todo cannot be modified: " + id);
         }
+    }
+
+    public TodoTag addTag(Tag tag) {
+        Objects.requireNonNull(tag, "tag");
+        if (findLink(tag.getId()).isPresent()) {
+            throw new IllegalArgumentException("Todo already has tag: " + tag.getId());
+        }
+        TodoTag link = new TodoTag(this, tag);
+        todoTags.add(link);
+        return link;
+    }
+
+    public Optional<TodoTag> removeTag(UUID tagId) {
+        Optional<TodoTag> link = findLink(tagId);
+        link.ifPresent(todoTags::remove);
+        return link;
+    }
+
+    // tag.getId() proxy'yi initialize etmez; todoTags ise ilk erişimde tek SELECT ile yüklenir
+    private Optional<TodoTag> findLink(UUID tagId) {
+        return todoTags.stream()
+                .filter(link -> link.getTag().getId().equals(tagId))
+                .findFirst();
     }
 
     private void touch() {

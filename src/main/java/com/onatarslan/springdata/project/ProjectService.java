@@ -1,5 +1,6 @@
 package com.onatarslan.springdata.project;
 
+import com.onatarslan.springdata.todo.TodoStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplicationRunListener;
@@ -14,21 +15,19 @@ public class ProjectService {
     public static final Logger log = LoggerFactory.getLogger(ProjectService.class);
 
     private final ProjectRepository projectRepository;
+    private final ProjectSettingsRepository projectSettingsRepository;
 
-    public ProjectService(ProjectRepository projectRepository) {
+    public ProjectService(ProjectRepository projectRepository, ProjectSettingsRepository projectSettingsRepository) {
         this.projectRepository = projectRepository;
+        this.projectSettingsRepository = projectSettingsRepository;
     }
 
     @Transactional
-    public UUID create(String name) {
+    public Project create(String name) {
+        Project project = projectRepository.save(new Project(name));
+        projectSettingsRepository.save(new ProjectSettings(project, TodoStatus.TODO, 50));
 
-        Project project = new Project(name);
-
-        UUID id = projectRepository.save(project).getId();
-
-        log.debug("Project persisted, id={}", id);
-
-        return id;
+        return project;
     }
 
 }
